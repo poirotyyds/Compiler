@@ -4,6 +4,7 @@ import midend.Visitor;
 import midend.value.Module;
 import node.NodeOutput;
 
+import java.beans.Visibility;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -36,10 +37,10 @@ public class Compiler {
             NodeOutput.writeToParser();
         }
         /***********语义分析：符号表管理和错误分析************/
-        Visitor visitor = new Visitor(parser.getCompUnitNode());
+        Visitor1 visitor1 = new Visitor1(parser.getCompUnitNode());
         FileWriter write = new FileWriter("symbol.txt");
         try (BufferedWriter symbolWriter = Files.newBufferedWriter(Paths.get("symbol.txt"), java.nio.charset.StandardCharsets.UTF_8, StandardOpenOption.APPEND);) {
-            visitor.printSymbolTable(symbolWriter);
+            visitor1.printSymbolTable(symbolWriter);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -55,15 +56,18 @@ public class Compiler {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-        /*生成LLVMIR*/
-        FileWriter writer = new FileWriter("llvm_ir.txt");
-        try (BufferedWriter llvmIrWriter = Files.newBufferedWriter(Paths.get("llvm_ir.txt"), java.nio.charset.StandardCharsets.UTF_8, java.nio.file.StandardOpenOption.APPEND)) {
-            llvmIrWriter.write(Module.getInstance().toString());
+        } else {
+            /*生成LLVMIR*/
+            Visitor visitor = new Visitor(parser.getCompUnitNode());
+            FileWriter writer = new FileWriter("llvm_ir.txt");
+            try (BufferedWriter llvmIrWriter = Files.newBufferedWriter(Paths.get("llvm_ir.txt"), java.nio.charset.StandardCharsets.UTF_8, java.nio.file.StandardOpenOption.APPEND)) {
+                llvmIrWriter.write(Module.getInstance().toString());
 
-        } catch (IOException e) {
-            e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+
 //        TranslateLLVMIRToMIPS object = new TranslateLLVMIRToMIPS(Module.getInstance());
 //        object.translateModule();
 //        System.out.println(object.getMipsModule());
